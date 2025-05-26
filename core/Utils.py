@@ -11,6 +11,7 @@ import re
 import os
 import subprocess
 from datetime import datetime
+from emoji import replace_emoji
 
 # 文字处理
 # UF : 将2个向量组合成"(x,y)"的形式
@@ -240,3 +241,8 @@ available_label_color = {
     'Purple':'#970097','Blue':'#3c3cff','Teal':'#008080','Magenta':'#e732e7',
     'Tan':'#cec195','Green':'#1d7021','Brown':'#8b4513','Yellow':'#e2e264'
 }
+
+# 用于去除文本中的emoji
+def remove_emojis(text):
+    # 定义一个正则表达式，匹配常见的 emoji 范围
+    return replace_emoji(string=text,replace='')

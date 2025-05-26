@@ -7,6 +7,8 @@ import re
 import pandas as pd
 import numpy as np
 
+from .Utils import remove_emojis
+
 class StoryImporter:
     parse_struct = {
         # 2023-06-20 15:50:30 Exception(3247131970)
@@ -140,7 +142,8 @@ class StoryImporter:
         # 进度条
         self.terminate = False
         self.progress = 0.0
-        lines = text.split('\n')
+        # 首先，清除text中的emoji
+        lines = remove_emojis(text).split('\n')
         total = len(lines)
         for idx, line in enumerate(lines):
             # 如果终止

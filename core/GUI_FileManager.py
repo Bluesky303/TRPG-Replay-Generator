@@ -244,6 +244,10 @@ class FileManager(ttk.Frame):
             for col in imported.customize_col:
                 if col not in self.project.chartab.customize_col:
                     self.project.chartab.add_customize(colname=col)
+            # 检查，是否已有自定义列，且不在导入角色中存在
+            for col in self.project.chartab.customize_col:
+                if col not in imported.customize_col:
+                    imported.add_customize(colname=col)
             # 检查，是否存在重名对象
             for keyword in imported.struct:
                 name, subtype = keyword.split('.')
@@ -710,6 +714,10 @@ class FileCollapsing(ttk.Frame):
                     )
                 self.rename_item_failed(origin_keyword)
                 raise Exception('重复名')
+            # 如果新名字和旧名字一模一样，那就什么什么都不做，直接return False
+            if new_keyword == origin_keyword:
+                self.rename_item_failed(origin_keyword)
+                raise Exception('重复名')
             # 删除原来的关键字
             self.items[origin_keyword].destroy()
             self.items.pop(origin_keyword)
@@ -938,7 +946,7 @@ class RGLCollapsing(FileCollapsing):
         if confirm_add:
             # 新建一个空白的RGL
             self.content[new_keyword] = RplGenLog(
-                string_input=tr('#! {executable}\n# {new_keyword}: 空白的剧本文件。点按键盘Tab键，获取命令智能补全。预览和导出按钮在右侧 ->\n').format(
+                string_input=tr('#! {executable}\n# {new_keyword}: 空白的剧本文件。按键盘Tab键补全命令，鼠标右键点击行号快捷预览，播放和导出按钮在右侧 ->\n').format(
                     executable=executable,
                     new_keyword=new_keyword
                 )

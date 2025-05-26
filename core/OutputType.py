@@ -477,7 +477,7 @@ class PreviewDisplay(OutputMediaType):
         hours = all_second // 3600
         minutes = (all_second % 3600) // 60
         seconds = (all_second % 3600) % 60
-        if hours > 1:
+        if hours >= 1:
             time = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
         else:
             time = f"{minutes:02d}:{seconds:02d}"
@@ -530,7 +530,7 @@ class PreviewDisplay(OutputMediaType):
                     'head':'软件',
                     'describe':f'回声工坊 {EDITION} @ {PUBLICATION}',
                     'element':[
-                        '版权所有 © 2022-2024 Betelgeuse Industry'
+                        '版权所有 © 2022-2025 Betelgeuse Industry'
                     ]
                 },
                 'project':{
@@ -557,7 +557,7 @@ class PreviewDisplay(OutputMediaType):
                     'head':'Software',
                     'describe':f'RplGen Studio {EDITION} @ {PUBLICATION}',
                     'element':[
-                        'Copyright © Betelgeuse Industry 2022-2024'
+                        'Copyright © Betelgeuse Industry 2022-2025'
                     ]
                 },
                 'project':{

@@ -24,7 +24,8 @@ RE_pos_exp = re.compile("^(\w+|\w+\[[\d\,\ ]+\]|\([\d\,\ \-]+\))( *(\+|\-) *(\w+
 # 单独提取星标音频框
 RE_asterisk = re.compile('(\{([^\{\}]*?[;])?\*([\w\ \.\,，。：？！“”]*)?\})')
 RE_hitpoint = re.compile('<hitpoint>:\((.+?),(\d+),(\d+),(\d+)\)') # a 1.6.5 血条预设动画
-RE_dice = re.compile('\((.+?),(\d+),([\d]+|NA),(\d+)\)') # a 1.7.5 骰子预设动画，老虎机
+RE_dice_duration = re.compile('\[\d*\.?\d+\]') # 骰子动画时长
+RE_dice = re.compile('\((.+?),(.+?),(\d+),([\d]+|NA),(\d+)\)') # a 1.7.5 骰子预设动画，老虎机
 RE_wait = re.compile('^<wait>:(.+)$')
 # 媒体定义的解析
 RE_mediadef = re.compile('^(\w+) *= *(Pos|FreePos|PosGrid|BezierCurve|Text|StrokeText|RichText|HPLabel|Bubble|Balloon|DynamicBubble|ChatWindow|Animation|Sprite|GroupedAnimation|BuiltInAnimation|Background|BGM|Audio)(\(.*\))')

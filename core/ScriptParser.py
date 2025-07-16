@@ -1051,9 +1051,18 @@ class RplGenLog(Script):
                     except Exception as E:
                         print(E)
                         raise ParserError('ParErrHit',str(i+1))
-                # 预设动画，骰子
+                # 预设动画，骰子，格式：<dice>:[4.0](name,content,dicemax,check,face)(...)(...)...
                 elif text[0:7] == '<dice>:':
                     this_section['type'] = 'dice'
+                    dice_duration = RE_dice_duration.search(text[7:]).group()
+                    if dice_duration:
+                        dice_duration = float(dice_duration[1:-1])
+                        if dice_duration >= 1.0:
+                            this_section['duration'] = dice_duration
+                        else:
+                            raise ParserError('DiceDurationErr')
+                    else:
+                        raise ParserError('NoDiceDuration')
                     dice_args = RE_dice.findall(text[7:])
                     if len(dice_args) == 0:
                         raise ParserError('NoDice')
@@ -1062,7 +1071,8 @@ class RplGenLog(Script):
                             this_dice_set = {}
                             for k,dice in enumerate(dice_args):
                                 this_dice = {}
-                                tx,dicemax,check,face = dice
+                                name, tx, dicemax, check, face = dice
+                                this_dice['name'] = name
                                 this_dice['content'] = tx
                                 this_dice['dicemax'] = int(dicemax)
                                 this_dice['face'] = int(face)
@@ -1167,11 +1177,14 @@ class RplGenLog(Script):
             else:
                 CK = int(this_dice['check'])
             list_of_dice_express.append(
-                '({},{},{},{})'.format(
+                '({},{},{},{},{})'.format( # (角色名, 检定内容, 面数, 技能值, 最终值)
+                    this_dice['name'],
                     this_dice['content'],
                     this_dice['dicemax'],
                     CK,
-                    this_dice['face']))
+                    this_dice['face'],
+                    )
+                )
         return ','.join(list_of_dice_express)
     def export(self,allowed_exception=False) -> str:
         list_of_scripts = []
@@ -2395,10 +2408,14 @@ class RplGenLog(Script):
                 width = config.Width
                 height = config.Height
                 try:
+                    animation_duration = this_section['duration']
+                    animation_frames = int(animation_duration * frame_rate)
+                    roll_duration = animation_duration / 2
+                    roll_frames = int(roll_duration * frame_rate)
                     # 建立小节
-                    this_timeline=pd.DataFrame(index=range(0,frame_rate*5),dtype=str,columns=self.render_arg) # 5s
+                    this_timeline=pd.DataFrame(index=range(0,animation_frames),dtype=str,columns=self.render_arg) # 5s
                     # 背景
-                    alpha_timeline = np.hstack([self.dynamic['formula'](0,1,frame_rate//2),np.ones(frame_rate*4-frame_rate//2),self.dynamic['formula'](1,0,frame_rate)])
+                    alpha_timeline = np.hstack([self.dynamic['formula'](0,1,animation_frames // 10),np.ones(int(animation_frames // 5 * 3.5)),self.dynamic['formula'](1,0,animation_frames // 5)])
                     this_timeline['BG1'] = 'black' # 黑色背景
                     this_timeline['BG1_a'] = alpha_timeline * 80
                     this_timeline['BG2'] = this_background
@@ -2409,7 +2426,8 @@ class RplGenLog(Script):
                         # 在媒体列表中添加内建媒体
                         self.medias[Auto_media_name+'_'+str(layer)] = Dice(
                             dice_set = this_section['dice_set'],
-                            layer = layer
+                            layer = layer,
+                            animation_duration=roll_duration
                             )
                     # 动画参数
                     # 文字描述
@@ -2420,27 +2438,27 @@ class RplGenLog(Script):
                     this_timeline['Am3_c'] = 'NA'
                     this_timeline['Am3_p'] = 'NA'
                     # 滚动骰点
-                    this_timeline['Am2'] = np.hstack([np.repeat(Auto_media_name+'_1',int(frame_rate*2.5)),np.repeat('NA',frame_rate*5-int(frame_rate*2.5))]) # 2.5s
-                    this_timeline['Am2_a'] = np.hstack([self.dynamic['formula'](0,100,frame_rate//2),
-                                                        np.ones(int(frame_rate*2.5)-2*(frame_rate//2))*100,
-                                                        self.dynamic['formula'](100,0,frame_rate//2),
-                                                        np.zeros(frame_rate*5-int(frame_rate*2.5))])
-                    this_timeline['Am2_t'] = np.hstack([np.arange(0,int(frame_rate*2.5)),np.zeros(frame_rate*5-int(frame_rate*2.5))])
+                    this_timeline['Am2'] = np.hstack([np.repeat(Auto_media_name+'_1',roll_frames),np.repeat('NA',animation_frames-roll_frames)])
+                    this_timeline['Am2_a'] = np.hstack([self.dynamic['formula'](0,100,animation_frames//10),
+                                                        np.ones(roll_frames-2*(animation_frames // 10))*100,
+                                                        self.dynamic['formula'](100,0,animation_frames // 10),
+                                                        np.zeros(animation_frames-roll_frames)])
+                    this_timeline['Am2_t'] = np.hstack([np.arange(0,roll_frames),np.zeros(animation_frames-roll_frames)])
                     this_timeline['Am2_c'] = 'NA'
                     this_timeline['Am2_b'] = 100
                     this_timeline['Am2_p'] = 'NA'
                     # 出目显示
-                    this_timeline['Am1'] = np.hstack([np.repeat('NA',frame_rate*5-int(frame_rate*2.5)),np.repeat(Auto_media_name+'_2',int(frame_rate*2.5))])
-                    this_timeline['Am1_a'] = np.hstack([np.zeros(frame_rate*5-int(frame_rate*2.5)),
-                                                        self.dynamic['formula'](0,100,frame_rate//2),
-                                                        np.ones(int(frame_rate*2.5)-frame_rate//2-frame_rate)*100,
-                                                        self.dynamic['formula'](100,0,frame_rate)])
+                    this_timeline['Am1'] = np.hstack([np.repeat('NA',animation_frames-roll_frames),np.repeat(Auto_media_name+'_2',roll_frames)])
+                    this_timeline['Am1_a'] = np.hstack([np.zeros(animation_frames-roll_frames),
+                                                        self.dynamic['formula'](0,100,animation_frames // 10),
+                                                        np.ones(roll_frames-int(animation_frames * 0.3))*100,
+                                                        self.dynamic['formula'](100,0,animation_frames // 5)])
                     this_timeline['Am1_t'] = 0
                     this_timeline['Am1_b'] = 100
                     this_timeline['Am1_c'] = 'NA'
                     this_timeline['Am1_p'] = 'NA'
                     # SE
-                    this_timeline.loc[frame_rate//3,'SE'] = "'./assets/SE_dice.wav'"
+                    this_timeline.loc[int(roll_frames*0.33),'SE'] = "'./assets/SE_dice.wav'"
                     # BGM
                     if BGM_queue != []:
                         this_timeline.loc[0,'BGM'] = BGM_queue.pop(0) #从BGM_queue里取第一个出来 alpha 1.13.5

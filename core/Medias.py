@@ -2154,7 +2154,8 @@ class Dice(BuiltInAnimation):
         self,
         dice_set:dict  = {},
         layer:int       = 0,
-        label_color:str = 'Mango'
+        label_color:str = 'Mango',
+        animation_duration:float = 2.5
         ):
         # 主要字体
         self.BIA_text = Text(self.BIA_font,fontsize=int(self.BIA_font_size*MediaObj.screen_size[0]),color=(255,255,255,255),line_limit=10)
@@ -2166,7 +2167,7 @@ class Dice(BuiltInAnimation):
             dice = dice_set[idx]
             # 类型是否合法
             try:
-                describe = dice['content']
+                describe = f"{dice['name']}的{dice['content']}检定"
                 dice_face = dice['face']
                 dice_max = dice['dicemax']
                 dice_check = dice['check']
@@ -2195,7 +2196,7 @@ class Dice(BuiltInAnimation):
                 i = int(idx)
                 dice = dice_set[idx]
                 # 渲染
-                name_surf = self.BIA_text.render(dice['content'])
+                name_surf = self.BIA_text.render(describe)
                 nx,ny = name_surf.get_size()
                 canvas.blit(name_surf,(int(0.3125*screensize[0])-nx//2,y_anchor+i*y_unit+(y_unit-ny)//2)) # 0.3125*screensize[0] = 600
                 if dice['check'] is not None:
@@ -2209,7 +2210,8 @@ class Dice(BuiltInAnimation):
         elif layer == 1:
             #画布
             canvas = []
-            for i in range(0,int(2.5*frame_rate)):
+            total_frames = int(animation_duration*frame_rate)
+            for i in range(0,total_frames):
                 canvas_frame = pygame.Surface((int(0.1458*screensize[0]),y_unit*N_dice),pygame.SRCALPHA) # 0.1458*screensize[0] = 280
                 canvas.append(canvas_frame)
             # 骰子
@@ -2227,7 +2229,7 @@ class Dice(BuiltInAnimation):
                 run_cols = np.frompyfunc(lambda x:run_surf.subsurface(x*(dx//cols),0,dx//cols,dy*10),1,1)(np.arange(0,cols))
                 # range
                 slot_surf = []
-                for i in range(0,int(2.5*frame_rate)):
+                for i in range(0,total_frames):
                     slot_frame = pygame.Surface((dx,dy),pygame.SRCALPHA)
                     slot_surf.append(slot_frame)
                 for i in range(0,cols):
@@ -2235,10 +2237,10 @@ class Dice(BuiltInAnimation):
                         speed_multiplier = 1
                     else:
                         speed_multiplier = np.linspace(2,1,cols)[i]
-                    speed = speed_multiplier*dy*11/2.5/frame_rate
-                    for t in range(0,int(2.5*frame_rate/speed_multiplier)):
+                    speed = speed_multiplier*dy*11/total_frames
+                    for t in range(0,int(total_frames/speed_multiplier)):
                         slot_surf[t].blit(run_cols[i],(i*dx//cols,int(dy-t*speed)))
-                for t in range(0,int(2.5*frame_rate/speed_multiplier)):
+                for t in range(0,int(total_frames/speed_multiplier)):
                     #canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),(l+1)*y_unit-dy-int(0.0278*screensize[1]))) #0.0278*screensize[1] = 30
                     canvas[t].blit(slot_surf[t],(int(0.1458*screensize[0]-dx-0.0278*screensize[1]),D*y_unit+(y_unit-dy)//2))
             # 媒体和位置

@@ -163,6 +163,10 @@ class ParserError(RplGenError):
         'ParErrHit'   :["Parse exception occurred in hitpoint line {}.",
                         "解析异常发生在第{}行（血条行）。"],
         # <dice>
+        'DiceDurationErr' : ["Dice animation duration is too small!",
+                             "骰子动画时长太小了!"],
+        'NoDiceDuration' :["Invalid syntax, no dice animation duration is specified!",
+                           "语法错误，没有指定骰子动画时长"],
         'NoDice'      :["Invalid syntax, no dice args is specified!",
                         "语法错误，没有指定骰子参数！"],
         'ParErrDice'  :["Parse exception occurred in dice line {}.",

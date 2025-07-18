@@ -1062,7 +1062,7 @@ class RplGenLog(Script):
                         else:
                             raise ParserError('DiceDurationErr')
                     else:
-                        raise ParserError('NoDiceDuration')
+                        this_section['duration'] = 5
                     dice_args = RE_dice.findall(text[7:])
                     if len(dice_args) == 0:
                         raise ParserError('NoDice')

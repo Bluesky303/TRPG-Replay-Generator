@@ -1,77 +1,36 @@
-import pygame
-import sys
-from core.Sprite import Sprite
-from core.Medias import Audio
-import ffmpeg
-
-# Initialize Pygame
-pygame.init()
-
-# Set up the display
-screen = pygame.display.set_mode((1920, 1080))
-pygame.display.set_caption("Pygame Window")
-
-test = Sprite(
-    filepath='./toy/media/sprite/季云动态轮廓.png',
-    eyepath='./toy/media/sprite/季云动态眼*.png',
-    mouthpath='./toy/media/sprite/季云动态嘴*.png',
-    pos=(300,300),
-    blink_mean=3,
-    blink_std=1,
-    tick=3
-)
-audio = Audio('./toy/media/sprite/test1.wav')
-# Colors
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-
-# Clock for controlling the frame rate
-clock = pygame.time.Clock()
-FPS = 30
-
-display_tick = test.get_tick(duration=500,audio=audio,delay=0,framerate=FPS)
-
-output_engine = (
-    ffmpeg
-    .input(
-        'pipe:',
-        format  = 'rawvideo',
-        r       = 30,
-        pix_fmt = 'rgb24',
-        s       = '{0}x{1}'.format(1920,1080)
-        ) # 视频来源
-    .output(
-        ffmpeg.input('./toy/media/sprite/test1.wav').audio,
-        './toy/media/sprite/test_out.mp4',
-        pix_fmt = 'yuv420p',
-        r       = 30,
-        crf     = 24,
-        loglevel= 'quiet',
-        ) # 输出
-    .overwrite_output()
-    .run_async(pipe_stdin=True)
-)
-
-channel = pygame.mixer.Channel(1)
-# Main loop
-running = True
-for i,tick in enumerate(display_tick):
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    # Fill the screen with white color
-    screen.fill(WHITE)
-    # Draw something on the screen
-    test.display(surface=screen,frame=tick)
-    # Update the display
-    pygame.display.update()
-    obyte = pygame.image.tostring(screen,'RGB')
-    output_engine.stdin.write(obyte)
-    # Cap the frame rate
-    clock.tick(FPS)
-
-output_engine.stdin.close()
-
-# Quit Pygame
-pygame.quit()
-sys.exit()
+def font_init(self):
+    # 字体
+    # 系统字体
+    system_font_family = {
+        'zh': {
+            'win32': 'Microsoft YaHei UI',
+            'linux': '文泉驿微米黑',
+            'darwin': '华文黑体',
+            'else': '华文黑体'
+        },
+        # TODO: 英文
+        'en': {
+            
+        }
+    }
+    font_platforms: dict = system_font_family.get(preference.lang, system_font_family['zh'])
+    self.system_font_family = font_platforms.get(sys.platform, font_platforms['else'])
+    Link['system_font_family'] = self.system_font_family
+    # 终端字体
+    ## 由于steam库目录有时会存在空格, 导致无法正常加载字体。虽然令人费解, 但是还是要想想办法
+    def zh_terminal_font_family():
+        try:
+            from tkextrafont import Font as FileFont
+            terminal_font = FileFont(file='./assets/sarasa-mono-sc-regular.ttf')
+            terminal_font_family = 'Sarasa Mono SC'
+        except Exception as E:
+            print('terminal font family set error, using system font family instead\n',E)
+            terminal_font_family = system_font_family
+        return terminal_font, terminal_font_family
+    
+    terminal_font_family = {
+        'zh': zh_terminal_font_family,
+        'else': zh_terminal_font_family,
+    }
+    self.terminal_font, self.terminal_font_family = terminal_font_family.get(preference.lang, terminal_font_family['else'])()
+    Link['terminal_font_family'] = self.terminal_font_family

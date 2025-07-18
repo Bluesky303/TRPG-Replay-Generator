@@ -2,10 +2,10 @@
 # coding: utf-8
 
 import multiprocessing
-from core.GUI_Welcome import RplGenStudioWelcome
+from src.ui.welcome import RplGenStudioWelcome
 
-def show_welcome(conn):
-    welcome = RplGenStudioWelcome(conn)
+def show_welcome(*args, **kwargs):
+    welcome = RplGenStudioWelcome(*args, **kwargs)
     pass
 
 if __name__ == '__main__':
@@ -13,7 +13,7 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()
     # 多进程启动welcome
     parent_conn, child_conn = multiprocessing.Pipe()
-    show_welcome_process = multiprocessing.Process(target=show_welcome,args=(child_conn,))
+    show_welcome_process = multiprocessing.Process(target=show_welcome,args=(child_conn,), kwargs={'fade_speed':0.2, 'sleep_time':100})
     show_welcome_process.start()
 
     # 再初始化 MainWindow

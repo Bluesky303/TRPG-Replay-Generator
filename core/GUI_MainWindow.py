@@ -25,9 +25,7 @@ from .Utils import EDITION
 from .GUI_View import EmptyView, ProjectView, ConsoleView, ScriptView, PreferenceView, PortalView
 
 class RplGenStudioMainWindow(ttk.Window):
-    def __init__(
-            self
-            )->None:
+    def __init__(self) -> None:
         # 系统缩放比例
         self.sz = self.get_screenzoom()
         Link['sz'] = self.sz
@@ -65,51 +63,44 @@ class RplGenStudioMainWindow(ttk.Window):
             'portal' : PortalView(master=self,screenzoom=self.sz)
         }
         self.view_show('project')
-    # 初始化字体
+
     def font_init(self):
-        # 字体
         # 系统字体
-        if preference.lang == 'zh':
-            if 'win32' in sys.platform:
-                system_font_family = 'Microsoft YaHei UI'
-            elif 'linux' in sys.platform:
-                system_font_family = '文泉驿微米黑'
-            elif 'darwin' in sys.platform:
-                system_font_family = '华文黑体'
-            else:
-                system_font_family = '华文黑体'
-        else:
+        system_font_family = {
+            'zh': {
+                'win32': 'Microsoft YaHei UI',
+                'linux': '文泉驿微米黑',
+                'darwin': '华文黑体',
+                'else': '华文黑体'
+            },
             # TODO: 英文
-            if 'win32' in sys.platform:
-                system_font_family = 'Microsoft YaHei UI'
-            elif 'linux' in sys.platform:
-                system_font_family = '文泉驿微米黑'
-            elif 'darwin' in sys.platform:
-                system_font_family = '华文黑体'
-            else:
-                system_font_family = '华文黑体'
-        self.system_font_family = system_font_family
-        Link['system_font_family'] = system_font_family
+            'en': {
+                
+            }
+        }
+        font_platforms: dict = system_font_family.get(preference.lang, system_font_family['zh'])
+        self.system_font_family = font_platforms.get(sys.platform, font_platforms['else'])
+        Link['system_font_family'] = self.system_font_family
+        
         # 终端字体
-        ## 由于steam库目录有时会存在空格，导致无法正常加载字体。虽然令人费解，但是还是要想想办法
-        if preference.lang == 'zh':
+        ## 由于steam库目录有时会存在空格, 导致无法正常加载字体。虽然令人费解, 但是还是要想想办法
+        def zh_terminal_font_family():
             try:
                 from tkextrafont import Font as FileFont
-                self.terminal_font = FileFont(file='./assets/sarasa-mono-sc-regular.ttf')
+                terminal_font = FileFont(file='./assets/sarasa-mono-sc-regular.ttf')
                 terminal_font_family = 'Sarasa Mono SC'
             except Exception as E:
-                print(E)
+                print('terminal font family set error, using system font family instead\n',E)
+                terminal_font = tkFont.nametofont('TkDefaultFont')
                 terminal_font_family = system_font_family
-        else:
-            try:
-                from tkextrafont import Font as FileFont
-                self.terminal_font = FileFont(file='./assets/sarasa-mono-sc-regular.ttf')
-                terminal_font_family = 'Sarasa Mono SC'
-            except Exception as E:
-                print(E)
-                terminal_font_family = system_font_family
-        self.terminal_font_family = terminal_font_family
-        Link['terminal_font_family'] = terminal_font_family
+            return terminal_font, terminal_font_family
+        
+        terminal_font_family = {
+            'zh': zh_terminal_font_family,
+            'else': zh_terminal_font_family,
+        }
+        self.terminal_font, self.terminal_font_family = terminal_font_family.get(preference.lang, terminal_font_family['else'])()
+        Link['terminal_font_family'] = self.terminal_font_family
     # 初始化主题
     def theme_config(self,theme):
         self.font_init()
@@ -187,7 +178,7 @@ class RplGenStudioMainWindow(ttk.Window):
             self.style.configure('SLURL.TLabel',anchor='w',background='#f2f3f5',font=(self.system_font_family, 8),padding=text_label_pad,foreground='#5555cc')
 
         elif theme == 'rplgendark':
-            # self.dark_title_bar() # 有bug，在win10不正常显示
+            # self.dark_title_bar() # 有bug, 在win10不正常显示
             self.style.configure('terminal.TButton',compound='left',font=(self.system_font_family, 14, "bold"))
             self.style.configure('output.TButton',compound='left',font=(self.system_font_family, out_font_size, "bold"))
             # bootstyle
@@ -298,7 +289,7 @@ class RplGenStudioMainWindow(ttk.Window):
         toast = ToastNotification(title=title,message=message)
         toast.show_toast()
         toast.toplevel.lift()
-    # 仅适用于windows，深色模式窗口
+    # 仅适用于windows, 深色模式窗口
     def dark_title_bar(self):
         if 'win32' in sys.platform:
             # 使标题栏变黑
@@ -337,14 +328,14 @@ class RplGenStudioMainWindow(ttk.Window):
 # 最右导航栏的
 class NavigateBar(ttk.Frame):
     """
-    各个元件的尺寸：以100%缩放为准
+    各个元件的尺寸: 以100%缩放为准
     -----
-    1. 图标的尺寸：50，50
-    2. 按钮的尺寸：60，60
-    3. 宽版按钮的尺寸：160，60
-    4. 按钮和按钮之间的距离：70
-    5. 按钮和分割线的距离：70 + 10
-    6. 选中标志，在按钮中的尺寸：5，60
+    1. 图标的尺寸: 50, 50
+    2. 按钮的尺寸: 60, 60
+    3. 宽版按钮的尺寸: 160, 60
+    4. 按钮和按钮之间的距离: 70
+    5. 按钮和分割线的距离: 70 + 10
+    6. 选中标志, 在按钮中的尺寸: 5, 60
     """
     def __init__(self,master,screenzoom) -> None:
         self.sz = screenzoom
@@ -435,11 +426,11 @@ class NavigateBar(ttk.Frame):
                 separator.place_configure(width=width)
         # 高亮的线
         self.press_button(self.master.show)
-    # 点击按键的绑定事件：标注
+    # 点击按键的绑定事件: 标注
     def press_button(self,button,force=False):
         # 检查是否禁用
         if self.disabled and force==False:
-            ToastNotification(title=tr('禁用图形界面'),message=tr('核心程序正在运行中！在核心程序终止前，图形界面已被暂时的禁用。'),duration=3000).show_toast()
+            ToastNotification(title=tr('禁用图形界面'),message=tr('核心程序正在运行中！在核心程序终止前, 图形界面已被暂时的禁用。'),duration=3000).show_toast()
             return
         position = int(self.ypos[button]*self.sz)
         if position < 0:
